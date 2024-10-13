@@ -3,28 +3,43 @@ import "./App.css";
 
 function App() {
   const [moleIndex, setMoleIndex] = useState(null);
+  const [piranhaIndex, setPiranhaIndex] = useState(null);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [intervalId, setIntervalId] = useState(null);
 
-  const holes = Array.from({ length: 15 }, (_, index) => index);
+  const holes = Array.from({ length: 12 }, (_, index) => index);
 
   const showMole = () => {
     const randomIndex = Math.floor(Math.random() * holes.length);
-    setMoleIndex(randomIndex);
+    if (randomIndex !== piranhaIndex) {
+      setMoleIndex(randomIndex);
+    } else {
+      showMole();
+    }
   };
 
+  const showPiranha = () => {
+    const randomIndex = Math.floor(Math.random() * holes.length);
+    if (randomIndex !== moleIndex) {
+      setPiranhaIndex(randomIndex);
+    } else {
+      showPiranha();
+    }
+  };
   const startGame = () => {
     setScore(0);
     setGameOver(false);
     setIsDisabled(true);
     setMoleIndex(null);
     showMole();
-
+    showPiranha();
     const newIntervalId = setInterval(() => {
       showMole();
+      showPiranha();
     }, 1000);
+
     setIntervalId(newIntervalId);
 
     setTimeout(() => {
@@ -32,6 +47,7 @@ function App() {
       setIsDisabled(false);
       clearInterval(newIntervalId);
       setMoleIndex(null);
+      setPiranhaIndex(null);
     }, 10000);
   };
 
@@ -43,45 +59,68 @@ function App() {
 
   const hitMole = (index) => {
     if (moleIndex === index) {
-      setScore((prevScore) => prevScore + 1);
-      showMole();
+      setScore((prevScore) => prevScore + 10);
+      setMoleIndex(null);
+      showPiranha();
     }
   };
-
+  const hitPiranha = (index) => {
+    if (score > 0) {
+      if (piranhaIndex === index) {
+        setScore((prevScore) => prevScore - 10);
+        setPiranhaIndex(null);
+        showMole();
+      }
+    }
+  };
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center bg-black">
-      <div className="container bg-white w-full h-screen flex flex-col justify-center items-center">
-        <h1 className="text-2xl mb-4">Score: {score}</h1>
-        <div className="w-full h-full md:w-1/2 md:h-4/5 bg-orange-600 p-16 grid grid-cols-3 gap-4 justify-center items-center">
-          {holes.map((_, index) => (
-            <div
-              key={index}
-              className="relative w-20 h-20 md:w-24 md:h-24 bg-green-500 rounded-full cursor-pointer"
-              onClick={() => hitMole(index)}
-            >
-              {moleIndex === index && (
-                <img
-                  src="/photo.png"
-                  alt="Mole"
-                  className="absolute top-4 left-5 w-16 h-16"
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <button
-          disabled={isDisabled}
-          className={`${
-            isDisabled ? "bg-black" : "bg-blue-500"
-          } mt-4 px-4 py-2  text-white rounded`}
-          onClick={startGame}
-        >
-          Start Game
-        </button>
-        {gameOver && (
-          <p className="mt-4 text-red-500">Game Over! Final Score: {score}</p>
-        )}
+    <div className="w-full h-screen flex flex-col justify-center items-center bg-[url('/mario-bg.jpg')] bg-cover bg-center">
+      <p className="text-3xl mb-4 font-semibold">Whack a Mole</p>
+      <h1 className="text-3xl mb-4 font-semibold">Score: {score}</h1>
+      <div className="w-full  md:w-2/3 xl:w-2/5 h-3/4 bg-[url('/soil.png')] bg-cover bg-center grid-cols-3 py-5 p-10 grid gap-4 justify-center items-center rounded-3xl border-white-600 border-4">
+        {holes.map((_, index) => (
+          <div
+            key={index}
+            className="bg-[url('/pipe.png')] bg-cover bg-center relative w-full h-full rounded-full cursor-pointer flex justify-center items-center"
+            onClick={() => {
+              if (moleIndex === index) {
+                hitMole(index);
+              } else if (piranhaIndex === index) {
+                hitPiranha(index);
+              }
+            }}
+          >
+            {moleIndex === index && (
+              <img
+                src="/monty-mole.png"
+                alt="Mole"
+                className="absolute top-0 left-18 w-16 h-16"
+              />
+            )}
+            {piranhaIndex === index && (
+              <img
+                src="/piranha-plant.png"
+                alt="Piranha"
+                className="absolute top-0 left-18 w-16 h-16"
+              />
+            )}
+          </div>
+        ))}
       </div>
+      <button
+        disabled={isDisabled}
+        className={`${
+          isDisabled ? "bg-black" : "bg-blue-500"
+        } mt-4 px-4 py-2  text-white rounded`}
+        onClick={startGame}
+      >
+        Start Game
+      </button>
+      {gameOver && (
+        <p className="mt-4 text-red-500 font-semibold text-2xl">
+          Game Over! Final Score: {score}
+        </p>
+      )}
     </div>
   );
 }
