@@ -11,33 +11,28 @@ function App() {
 
   const holes = Array.from({ length: 12 }, (_, index) => index);
 
-  const showMole = () => {
-    const randomIndex = Math.floor(Math.random() * holes.length);
-    if (randomIndex !== piranhaIndex) {
-      setMoleIndex(randomIndex);
-    } else {
-      showMole();
-    }
+  const showMoleAndPiranha = () => {
+    const randomMoleIndex = Math.floor(Math.random() * holes.length);
+
+    let randomPiranhaIndex;
+    do {
+      randomPiranhaIndex = Math.floor(Math.random() * holes.length);
+    } while (randomPiranhaIndex === randomMoleIndex);
+
+    setMoleIndex(randomMoleIndex);
+    setPiranhaIndex(randomPiranhaIndex);
   };
 
-  const showPiranha = () => {
-    const randomIndex = Math.floor(Math.random() * holes.length);
-    if (randomIndex !== moleIndex) {
-      setPiranhaIndex(randomIndex);
-    } else {
-      showPiranha();
-    }
-  };
   const startGame = () => {
     setScore(0);
     setGameOver(false);
     setIsDisabled(true);
     setMoleIndex(null);
-    showMole();
-    showPiranha();
+    setPiranhaIndex(null);
+    showMoleAndPiranha();
+
     const newIntervalId = setInterval(() => {
-      showMole();
-      showPiranha();
+      showMoleAndPiranha();
     }, 1000);
 
     setIntervalId(newIntervalId);
@@ -61,18 +56,20 @@ function App() {
     if (moleIndex === index) {
       setScore((prevScore) => prevScore + 10);
       setMoleIndex(null);
-      showPiranha();
+      showMoleAndPiranha();
     }
   };
+
   const hitPiranha = (index) => {
     if (score > 0) {
       if (piranhaIndex === index) {
         setScore((prevScore) => prevScore - 10);
         setPiranhaIndex(null);
-        showMole();
+        showMoleAndPiranha();
       }
     }
   };
+
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center bg-[url('/mario-bg.jpg')] bg-cover bg-center">
       <p className="text-3xl mb-4 font-semibold">Whack a Mole</p>
